@@ -184,6 +184,21 @@ describe('generatePlan – alle Kombinationen Stufe × Tage × Ziel × Geräte',
     expect(v).toEqual([])
   })
 
+  it('gibt zu jeder geplanten Übung eine leichtere Variante mit', () => {
+    const v = violationsForAll((_, plan) =>
+      plan.days.flatMap((d) =>
+        d.exercises
+          .filter(
+            (p) =>
+              typeof p.exercise.easier !== 'string' ||
+              p.exercise.easier.trim() === '',
+          )
+          .map((p) => `Tag ${d.day}: ${p.exercise.id} ohne leichtere Variante`),
+      ),
+    )
+    expect(v).toEqual([])
+  })
+
   it('verwendet nur Übungen aus der Übungsdatenbank', () => {
     const v = violationsForAll((_, plan) =>
       plan.days.flatMap((d) =>

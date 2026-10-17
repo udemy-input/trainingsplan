@@ -68,6 +68,7 @@ function renderPlan(input: PlanInput, plan: Plan): void {
         el('th', 'Sätze'),
         el('th', 'Wdh. / Zeit'),
         el('th', 'Pause'),
+        el('th', 'Leichter'),
       )
       table.append(head)
 
@@ -79,6 +80,7 @@ function renderPlan(input: PlanInput, plan: Plan): void {
           el('td', String(sets)),
           el('td', `${reps.min}–${reps.max}${unit}`),
           el('td', formatRest(rest)),
+          el('td', exercise.easier),
         )
         table.append(row)
       }
