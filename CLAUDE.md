@@ -8,6 +8,7 @@ Statische Web-App, die aus Erfahrung, Trainingstagen, Geräten und Ziel determin
 - `npm test` – Vitest einmalig (`npm run test:watch` im Watch-Modus)
 - `npm run typecheck` – nur `tsc`
 - `npm run build` – Typecheck + Produktions-Build
+- `npm run format` / `npm run format:check` – Prettier (Markdown ist per `.prettierignore` ausgenommen)
 
 ## Fallen
 

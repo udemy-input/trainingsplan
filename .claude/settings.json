@@ -8,15 +8,17 @@
       "Bash(npx vitest *)",
       "Bash(npx tsc *)"
     ],
-    "ask": [
-      "Bash(git push)",
-      "Bash(git push *)"
-    ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(**/.env)",
-      "Read(**/.env.*)"
-    ]
+      "Read(**/.env.*)",
+      "Skill(replog-toolkit:neue-uebung)",
+      "Skill(replog-toolkit:neue-uebung *)"
+    ],
+    "ask": ["Bash(git push)", "Bash(git push *)"]
+  },
+  "enabledPlugins": {
+    "replog-toolkit@kurs": true
   }
 }

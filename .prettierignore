@@ -1,0 +1,6 @@
+# Markdown (AUFTRAG.md, PLAN.md, CLAUDE.md, Agents, Skills) bleibt, wie es geschrieben wurde
+*.md
+
+dist
+node_modules
+package-lock.json
