@@ -38,6 +38,8 @@ export interface PlannedExercise {
   sets: number
   /** Bereich in der Einheit der Übung (Wiederholungen oder Sekunden). */
   reps: { min: number; max: number }
+  /** Pause zwischen den Sätzen in Sekunden. */
+  rest: { min: number; max: number }
 }
 
 export interface PlanDay {

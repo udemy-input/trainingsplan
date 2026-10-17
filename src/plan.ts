@@ -30,6 +30,11 @@ import type {
  *   muskelaufbau → 4 Sätze, 8–12 Wdh,  20–40 s
  *   ausdauer     → 3 Sätze, 15–25 Wdh, 30–60 s
  *
+ * Pause zwischen den Sätzen nach Ziel (Sekunden, unabhängig von der Einheit):
+ *   kraft        → 120–180 s
+ *   muskelaufbau →  60–90 s
+ *   ausdauer     →  30–45 s
+ *
  * Auswahl: nur Übungen mit level ≤ input.level, deren Geräte alle verfügbar
  * sind (Boden immer verfügbar), keine Übung doppelt am selben Tag.
  * Gleiche Eingabe (auch bei anderer Geräte-Reihenfolge oder Duplikaten)
@@ -49,19 +54,26 @@ export const EXERCISES_PER_DAY: Record<Level, number> = { 1: 4, 2: 5, 3: 6 }
 
 export const GOAL_RULES: Record<
   Goal,
-  { sets: number; ranges: Record<Unit, { min: number; max: number }> }
+  {
+    sets: number
+    ranges: Record<Unit, { min: number; max: number }>
+    rest: { min: number; max: number }
+  }
 > = {
   kraft: {
     sets: 5,
     ranges: { wdh: { min: 3, max: 6 }, sek: { min: 10, max: 20 } },
+    rest: { min: 120, max: 180 },
   },
   muskelaufbau: {
     sets: 4,
     ranges: { wdh: { min: 8, max: 12 }, sek: { min: 20, max: 40 } },
+    rest: { min: 60, max: 90 },
   },
   ausdauer: {
     sets: 3,
     ranges: { wdh: { min: 15, max: 25 }, sek: { min: 30, max: 60 } },
+    rest: { min: 30, max: 45 },
   },
 }
 
@@ -112,6 +124,7 @@ export function generatePlan(input: PlanInput): Plan {
           exercise,
           sets: rules.sets,
           reps: { ...rules.ranges[exercise.unit] },
+          rest: { ...rules.rest },
         }
       })
     return {

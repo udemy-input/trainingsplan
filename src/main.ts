@@ -46,6 +46,12 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node
 }
 
+/** Ganze Minuten als „2–3 min“, sonst Sekunden als „60–90 s“. */
+function formatRest({ min, max }: { min: number; max: number }): string {
+  if (min % 60 === 0 && max % 60 === 0) return `${min / 60}–${max / 60} min`
+  return `${min}–${max} s`
+}
+
 function renderPlan(input: PlanInput, plan: Plan): void {
   summary.textContent = `${LEVEL_LABELS[input.level]} · ${input.days} Tage · Ziel: ${GOAL_LABELS[input.goal]}`
 
@@ -57,16 +63,22 @@ function renderPlan(input: PlanInput, plan: Plan): void {
 
       const table = el('table')
       const head = el('tr')
-      head.append(el('th', 'Übung'), el('th', 'Sätze'), el('th', 'Wdh. / Zeit'))
+      head.append(
+        el('th', 'Übung'),
+        el('th', 'Sätze'),
+        el('th', 'Wdh. / Zeit'),
+        el('th', 'Pause'),
+      )
       table.append(head)
 
-      for (const { exercise, sets, reps } of day.exercises) {
+      for (const { exercise, sets, reps, rest } of day.exercises) {
         const unit = exercise.unit === 'sek' ? ' s' : ''
         const row = el('tr')
         row.append(
           el('td', exercise.name),
           el('td', String(sets)),
           el('td', `${reps.min}–${reps.max}${unit}`),
+          el('td', formatRest(rest)),
         )
         table.append(row)
       }

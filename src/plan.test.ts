@@ -370,6 +370,75 @@ describe('generatePlan – Determinismus', () => {
   })
 })
 
+describe('generatePlan – Pause zwischen den Sätzen', () => {
+  const REST: Record<Goal, Range> = {
+    kraft: { min: 120, max: 180 },
+    muskelaufbau: { min: 60, max: 90 },
+    ausdauer: { min: 30, max: 45 },
+  }
+
+  it('jede Übung hat die Pause ihres Ziels (alle Kombinationen)', () => {
+    const v = violationsForAll((input, plan) =>
+      plan.days.flatMap((day) =>
+        day.exercises
+          .filter(
+            (pe) =>
+              pe.rest?.min !== REST[input.goal].min ||
+              pe.rest?.max !== REST[input.goal].max,
+          )
+          .map(
+            (pe) =>
+              `Tag ${day.day} ${pe.exercise.id}: ${JSON.stringify(pe.rest)}`,
+          ),
+      ),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('Pause ist unabhängig von der Einheit (wdh/sek)', () => {
+    for (const goal of GOALS) {
+      const plan = generatePlan({
+        level: 3,
+        days: 5,
+        goal,
+        equipment: [...EXTRA_EQUIPMENT],
+      })
+      const all = plan.days.flatMap((d) => d.exercises)
+      const units = new Set(all.map((pe) => pe.exercise.unit))
+      expect(units).toEqual(new Set<Unit>(['wdh', 'sek']))
+      for (const pe of all) expect(pe.rest).toEqual(REST[goal])
+    }
+  })
+
+  it('Kraft-Pause > Muskelaufbau-Pause > Ausdauer-Pause', () => {
+    const restOf = (goal: Goal) =>
+      generatePlan({ level: 2, days: 3, goal, equipment: [] }).days[0]
+        .exercises[0].rest
+    const kraft = restOf('kraft')
+    const muskel = restOf('muskelaufbau')
+    const ausdauer = restOf('ausdauer')
+    expect(kraft.min).toBeGreaterThan(muskel.max)
+    expect(muskel.min).toBeGreaterThan(ausdauer.max)
+  })
+
+  it('min ≤ max und jede Übung hat ein eigenes rest-Objekt', () => {
+    const plan = generatePlan({
+      level: 3,
+      days: 4,
+      goal: 'kraft',
+      equipment: [],
+    })
+    const all = plan.days.flatMap((d) => d.exercises)
+    for (const pe of all) expect(pe.rest.min).toBeLessThanOrEqual(pe.rest.max)
+    all[0].rest.min = 0
+    expect(all[1].rest.min).toBe(REST.kraft.min)
+    expect(
+      generatePlan({ level: 3, days: 4, goal: 'kraft', equipment: [] }).days[0]
+        .exercises[0].rest,
+    ).toEqual(REST.kraft)
+  })
+})
+
 describe('generatePlan – ungültige Eingaben', () => {
   const valid: PlanInput = {
     level: 2,
