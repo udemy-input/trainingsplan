@@ -57,7 +57,12 @@ function renderPlan(input: PlanInput, plan: Plan): void {
 
       const table = el('table')
       const head = el('tr')
-      head.append(el('th', 'Übung'), el('th', 'Sätze'), el('th', 'Wdh. / Zeit'))
+      head.append(
+        el('th', 'Übung'),
+        el('th', 'Sätze'),
+        el('th', 'Wdh. / Zeit'),
+        el('th', 'Leichter'),
+      )
       table.append(head)
 
       for (const { exercise, sets, reps } of day.exercises) {
@@ -67,6 +72,7 @@ function renderPlan(input: PlanInput, plan: Plan): void {
           el('td', exercise.name),
           el('td', String(sets)),
           el('td', `${reps.min}–${reps.max}${unit}`),
+          el('td', exercise.easier),
         )
         table.append(row)
       }

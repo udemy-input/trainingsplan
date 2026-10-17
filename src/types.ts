@@ -23,6 +23,13 @@ export interface Exercise {
   equipment: readonly Equipment[]
   level: Level
   unit: Unit
+  /**
+   * Leichtere Variante (Regression) als kurzer Text. Braucht keine Geräte über
+   * die der Übung hinaus (Boden ist immer erlaubt) und ist nie schwerer als die
+   * Übung selbst. Entspricht sie einer anderen Übung der Datenbank, steht hier
+   * deren Name.
+   */
+  easier: string
 }
 
 export interface PlanInput {

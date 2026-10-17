@@ -74,6 +74,43 @@ describe('Übungsdatenbank EXERCISES', () => {
     expect(invalid.map((e) => e.id)).toEqual([])
   })
 
+  it('hat zu jeder Übung eine nicht-leere leichtere Variante', () => {
+    const invalid = EXERCISES.filter(
+      (e) => typeof e.easier !== 'string' || e.easier.trim() === '',
+    )
+    expect(invalid.map((e) => e.id)).toEqual([])
+  })
+
+  it('hat keine leichtere Variante, die der Übung selbst entspricht', () => {
+    const invalid = EXERCISES.filter(
+      (e) => e.easier.trim().toLowerCase() === e.name.trim().toLowerCase(),
+    )
+    expect(invalid.map((e) => e.id)).toEqual([])
+  })
+
+  it('verweist mit der leichteren Variante nur auf passende Übungen der Datenbank', () => {
+    const byName = new Map(EXERCISES.map((e) => [e.name, e]))
+    const violations = EXERCISES.flatMap((e) => {
+      const target = byName.get(e.easier)
+      if (target === undefined) return []
+      const allowed = new Set<Equipment>([...e.equipment, 'boden'])
+      const out: string[] = []
+      if (target.category !== e.category) {
+        out.push(`${e.id} → ${target.id}: Kategorie ${target.category}`)
+      }
+      if (target.level > e.level) {
+        out.push(`${e.id} → ${target.id}: Level ${target.level} > ${e.level}`)
+      }
+      if (!target.equipment.every((eq) => allowed.has(eq))) {
+        out.push(
+          `${e.id} → ${target.id}: braucht ${target.equipment.join('+')}`,
+        )
+      }
+      return out
+    })
+    expect(violations).toEqual([])
+  })
+
   it.each(CATEGORIES)(
     'hat für Kategorie "%s" mindestens eine Level-1-Übung nur mit Boden',
     (category) => {
