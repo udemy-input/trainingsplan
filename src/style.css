@@ -1,146 +1,712 @@
+/*
+ * Parcours-Schild: Signalgelb und Tiefschwarz wie die Tafeln an
+ * Outdoor-Fitnessstationen. Heller Grund und hoher Kontrast, damit der Plan
+ * auch in der Sonne lesbar bleibt.
+ */
+:root {
+  --signal: #ffd400;
+  --signal-deep: #f2b800;
+  --ink: #121212;
+  --paper: #f4f1e8;
+  --card: #fffdf6;
+  --muted: #55524a;
+  --line: #d9d3c2;
+
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+  --stripes: repeating-linear-gradient(
+    -45deg,
+    var(--ink) 0 10px,
+    var(--signal) 10px 20px
+  );
+  --radius: 4px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: system-ui, sans-serif;
-  line-height: 1.4;
   margin: 0;
-  color: #222;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* Feine Betonkörnung statt flacher Fläche. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-text-size-adjust: 100%;
 }
 
-main {
-  max-width: 48rem;
+h1,
+h2,
+h3,
+h4,
+legend {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+}
+
+/* ---------- Kopf ---------- */
+
+.site-header {
+  background: var(--signal);
+  border-bottom: 12px solid transparent;
+  border-image: var(--stripes) 12;
+}
+
+.site-header-inner {
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1.75rem 1rem 1.25rem;
 }
 
-form {
+.kicker {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(3.25rem, 15vw, 6.5rem);
+  font-weight: 900;
+  hyphens: manual;
+}
+
+/* ---------- Layout ---------- */
+
+.layout {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
   display: grid;
-  gap: 0.75rem;
-  max-width: 24rem;
+  /* minmax(0, …): Spalte darf schmaler als ihr längstes Wort werden. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
 }
 
-form > label {
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: 23rem minmax(0, 1fr);
+    align-items: start;
+    gap: 2.5rem;
+  }
+
+  .panel {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+/* ---------- Formular ---------- */
+
+.panel {
   display: grid;
-  gap: 0.25rem;
+  gap: 1.35rem;
+  margin: 0;
 }
 
-fieldset label {
-  display: block;
+.field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+/* Radios/Checkboxen bleiben echte Eingaben (Tastatur, Screenreader), nur
+   unsichtbar – sichtbar ist das Feld daneben. */
+.segments input,
+.chips input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+
+.segments {
+  display: flex;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.segments label {
+  /* Breite nach Inhalt, damit „Fortgeschritten“ auch bei 320 px passt. */
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+}
+
+.segments label + label {
+  border-left: 2px solid var(--ink);
+}
+
+.segments span {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 3rem;
+  padding: 0.25rem 0.4rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.1;
+  hyphens: auto;
+  cursor: pointer;
+  transition:
+    background-color 0.12s,
+    color 0.12s;
+}
+
+.segments-numbers label {
+  flex-basis: 0;
+}
+
+.segments-numbers span {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.segments label:hover span {
+  background: #fff3b0;
+}
+
+.segments input:checked + span {
+  background: var(--ink);
+  color: var(--signal);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--card);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    background-color 0.12s,
+    color 0.12s;
+}
+
+/* Kästchen im Chip: leer oder mit Haken. */
+.chips span::before {
+  content: '';
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.chips label:hover span {
+  background: #fff3b0;
+}
+
+.chips input:checked + span {
+  background: var(--signal);
+}
+
+.chips input:checked + span::before {
+  background: var(--ink)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='%23ffd400' stroke-width='2.5'/%3E%3C/svg%3E")
+    center / 100% no-repeat;
+  border-color: var(--ink);
+}
+
+.chips input:disabled + span {
+  cursor: default;
+  border-style: dashed;
+}
+
+.segments input:focus-visible + span,
+.chips input:focus-visible + span,
+button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--signal);
+}
+
+.segments input:focus-visible + span {
+  outline-offset: -5px;
+  box-shadow: none;
 }
 
 button {
-  padding: 0.5rem 1rem;
   font: inherit;
   cursor: pointer;
+  border-radius: var(--radius);
 }
 
-/* Fingerfreundlich: mindestens ~44 px hohe Bedienelemente. */
-select {
-  font: inherit;
+.button-go {
+  min-height: 3.75rem;
+  margin-top: 0.25rem;
+  border: 0;
+  background: var(--ink);
+  color: var(--signal);
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 5px 0 var(--signal-deep);
+  transition: transform 0.08s;
 }
 
-select,
-button {
+.button-go::after {
+  content: ' →';
+}
+
+.button-go:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--signal-deep);
+}
+
+.button-ghost {
   min-height: 2.75rem;
+  padding: 0.4rem 1rem;
+  border: 2px solid var(--ink);
+  background: var(--card);
+  font-weight: 700;
 }
 
-fieldset label {
-  padding: 0.35rem 0;
+.button-ghost:hover {
+  background: var(--signal);
 }
 
-input[type='checkbox'] {
-  width: 1.25rem;
-  height: 1.25rem;
-  vertical-align: middle;
+/* ---------- Leerer Zustand (nur breit) ---------- */
+
+.empty {
+  display: none;
+}
+
+@media (min-width: 60rem) {
+  .empty:not([hidden]) {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    min-height: 24rem;
+    padding: 2rem;
+    border: 3px dashed var(--line);
+    border-radius: var(--radius);
+    color: var(--muted);
+    max-width: 30rem;
+  }
+
+  .empty p {
+    margin: 0;
+  }
+
+  .empty-mark {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--signal-deep);
+    transform: scaleX(-1);
+  }
+}
+
+/* ---------- Plan ---------- */
+
+#plan {
+  scroll-margin-top: 1rem;
 }
 
 .plan-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: clamp(2.25rem, 8vw, 3rem);
+  font-weight: 900;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.85rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.summary li {
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.summary li:first-child {
+  background: var(--signal);
+  color: var(--ink);
+}
+
+#plan-days {
+  display: grid;
+  gap: 1.5rem;
 }
 
 .plan-day {
-  margin-bottom: 1.5rem;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 6px 6px 0 var(--ink);
   break-inside: avoid;
+  overflow: hidden;
+  animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
 }
 
-th,
-td {
-  text-align: left;
-  padding: 0.35rem 0.5rem;
-  border-bottom: 1px solid #ccc;
+@media (prefers-reduced-motion: reduce) {
+  .plan-day {
+    animation: none;
+  }
+
+  .segments span,
+  .chips span,
+  .button-go {
+    transition: none;
+  }
 }
 
-th:not(:first-child),
-td:not(:first-child) {
-  width: 7rem;
+.day-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--signal);
+  border-bottom: 2px solid var(--ink);
 }
 
-td:nth-child(2),
-td:nth-child(3),
-td:nth-child(4) {
+/* Stationsnummer wie auf dem Parcours-Schild. */
+.day-number {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--signal);
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.day-title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  hyphens: auto;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.day-kicker {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+}
+
+.exercises {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Handy: Name oben, darunter Dosis groß und Pause, dann die leichtere Variante. */
+.exercise {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'name name'
+    'dose rest'
+    'easier easier';
+  align-items: baseline;
+  column-gap: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.exercise + .exercise {
+  border-top: 2px dashed var(--line);
+}
+
+.exercise p {
+  margin: 0;
+}
+
+.ex-name {
+  grid-area: name;
+  margin: 0 0 0.15rem;
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.ex-index {
+  display: inline-block;
+  min-width: 1.9rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-dose {
+  grid-area: dose;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ex-dose b {
+  font-weight: 900;
+}
+
+.ex-times {
+  color: var(--signal-deep);
+  -webkit-text-stroke: 0.5px var(--ink);
+}
+
+.ex-unit {
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ex-rest {
+  grid-area: rest;
+  justify-self: end;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-/* Schmale Bildschirme: jede Übung als Karte statt fünf gequetschter Spalten. */
-@media screen and (max-width: 40rem) {
-  thead {
-    display: none;
+.ex-easier {
+  grid-area: easier;
+  margin-top: 0.45rem !important;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.ex-tag {
+  display: inline-block;
+  padding: 0.05rem 0.35rem;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 0.12em;
+}
+
+.ex-easier .ex-tag::before {
+  content: '↓ ';
+}
+
+/* Sehr schmal (z. B. 320 px): Pause unter die Dosis statt daneben. */
+@media (max-width: 23rem) {
+  .exercise {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'name'
+      'dose'
+      'rest'
+      'easier';
   }
 
-  table,
-  tbody,
-  tr,
-  td {
-    display: block;
-  }
-
-  tr {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #ccc;
-  }
-
-  td,
-  td:not(:first-child) {
-    width: auto;
-    padding: 0.1rem 0;
-    border: 0;
-  }
-
-  td:first-child {
-    font-weight: 600;
-  }
-
-  td:nth-child(2),
-  td:nth-child(3),
-  td:nth-child(4) {
-    display: inline-block;
-    margin-right: 1rem;
-  }
-
-  td:not(:first-child)::before {
-    content: attr(data-label) ': ';
-    color: #555;
+  .ex-rest {
+    justify-self: start;
+    margin-top: 0.35rem !important;
   }
 }
 
-@media print {
-  form,
-  #print,
-  h1 {
-    display: none;
+/* Breit: eine Zeile pro Übung, Zahlen in fester Spalte. */
+@media (min-width: 40rem) {
+  .exercise {
+    grid-template-columns: 1fr 9.5rem 7rem;
+    grid-template-areas:
+      'name dose rest'
+      'easier dose rest';
+    align-items: center;
+    row-gap: 0.1rem;
   }
 
-  main {
+  .ex-easier {
+    margin-top: 0 !important;
+    padding-left: 1.9rem;
+  }
+
+  .ex-dose {
+    justify-self: end;
+  }
+}
+
+/* ---------- Druck ---------- */
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  .site-header,
+  .panel,
+  .empty,
+  #print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    font-size: 10pt;
+  }
+
+  .layout {
+    display: block;
     max-width: none;
     padding: 0;
   }
 
-  body {
-    font-size: 11pt;
+  h2 {
+    font-size: 22pt;
+  }
+
+  .summary {
+    margin: 4pt 0 10pt;
+  }
+
+  /* Hintergründe druckt der Browser meist nicht – also mit Rahmen arbeiten. */
+  .summary li,
+  .summary li:first-child {
+    background: none;
+    color: #000;
+    border: 1px solid #000;
+  }
+
+  #plan-days {
+    gap: 8pt;
+  }
+
+  .plan-day {
+    animation: none;
+    background: #fff;
+    box-shadow: none;
+    border: 1.5pt solid #000;
+  }
+
+  .day-head {
+    padding: 4pt 8pt;
+    background: none;
+    border-bottom: 1.5pt solid #000;
+  }
+
+  .day-number {
+    width: 22pt;
+    height: 22pt;
+    font-size: 14pt;
+    background: none;
+    color: #000;
+    border: 1.5pt solid #000;
+  }
+
+  .day-title {
+    font-size: 16pt;
+  }
+
+  .exercise {
+    grid-template-columns: 1fr 9rem 7rem;
+    column-gap: 12pt;
+    grid-template-areas:
+      'name dose rest'
+      'easier dose rest';
+    align-items: center;
+    padding: 3pt 8pt;
+    break-inside: avoid;
+  }
+
+  .exercise + .exercise {
+    border-top: 0.75pt dashed #999;
+  }
+
+  .ex-name {
+    font-size: 10.5pt;
+  }
+
+  .ex-dose {
+    justify-self: end;
+    font-size: 15pt;
+  }
+
+  .ex-times {
+    color: #000;
+    -webkit-text-stroke: 0;
+  }
+
+  .ex-unit {
+    font-size: 8pt;
+  }
+
+  .ex-tag {
+    font-size: 6.5pt;
+  }
+
+  .ex-easier {
+    margin-top: 0 !important;
+    padding-left: 1.9rem;
+    font-size: 8.5pt;
+    color: #333;
   }
 }

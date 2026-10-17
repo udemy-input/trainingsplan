@@ -14,12 +14,12 @@ Statische Web-App, die aus Erfahrung, Trainingstagen, Geräten und Ziel determin
 - Umfang: 4 / 5 / 6 Übungen pro Tag je nach Stufe
 - Ausgabe: Plan anzeigen + druckfreundliches Layout
 - Sprache: Deutsch, übliche englische Übungsnamen bleiben
+- Design: „Parcours-Schild“ – Signalgelb/Schwarz, hoher Kontrast für draußen, Schriften lokal per @fontsource (Big Shoulders Display, Atkinson Hyperlegible)
 
 ## Nicht im Umfang
 - Login, Benutzerkonten, Server
 - Speichern (localStorage) oder Teilen per Link
 - Ernährungspläne, Skill-Ziele/Progressionsketten
-- Design-Feinschliff
 
 ## Schritte
 1. Projekt mit Vite + TypeScript + Vitest aufsetzen
