@@ -1,0 +1,78 @@
+body {
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
+  margin: 0;
+  color: #222;
+}
+
+main {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 24rem;
+}
+
+form > label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+fieldset label {
+  display: block;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plan-day {
+  margin-bottom: 1.5rem;
+  break-inside: avoid;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid #ccc;
+}
+
+th:not(:first-child),
+td:not(:first-child) {
+  width: 7rem;
+}
+
+@media print {
+  form,
+  #print,
+  h1 {
+    display: none;
+  }
+
+  main {
+    max-width: none;
+    padding: 0;
+  }
+
+  body {
+    font-size: 11pt;
+  }
+}

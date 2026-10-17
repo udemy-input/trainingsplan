@@ -6,7 +6,70 @@
     <title>Trainingsplan-Generator</title>
   </head>
   <body>
-    <div id="app"></div>
+    <main>
+      <h1>Trainingsplan-Generator</h1>
+
+      <form id="plan-form">
+        <label>
+          Erfahrung
+          <select name="level">
+            <option value="1">Anfänger</option>
+            <option value="2">Fortgeschritten</option>
+            <option value="3">Profi</option>
+          </select>
+        </label>
+
+        <label>
+          Trainingstage pro Woche
+          <select name="days">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+
+        <label>
+          Ziel
+          <select name="goal">
+            <option value="kraft">Kraft</option>
+            <option value="muskelaufbau" selected>Muskelaufbau</option>
+            <option value="ausdauer">Ausdauer</option>
+          </select>
+        </label>
+
+        <fieldset>
+          <legend>Geräte</legend>
+          <label><input type="checkbox" checked disabled /> Boden</label>
+          <label>
+            <input type="checkbox" name="equipment" value="klimmzugstange" />
+            Klimmzugstange
+          </label>
+          <label>
+            <input type="checkbox" name="equipment" value="barren" />
+            Barren / Dip-Station
+          </label>
+          <label>
+            <input type="checkbox" name="equipment" value="ringe" /> Ringe
+          </label>
+          <label>
+            <input type="checkbox" name="equipment" value="baender" />
+            Widerstandsbänder
+          </label>
+        </fieldset>
+
+        <button type="submit">Plan erstellen</button>
+      </form>
+
+      <section id="plan" hidden>
+        <div class="plan-header">
+          <h2>Dein Wochenplan</h2>
+          <button type="button" id="print">Drucken</button>
+        </div>
+        <p id="plan-summary"></p>
+        <div id="plan-days"></div>
+      </section>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
