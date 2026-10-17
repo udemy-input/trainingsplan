@@ -15,6 +15,26 @@ export type DayFocus =
 /** Wiederholungen oder Haltezeit in Sekunden. */
 export type Unit = 'wdh' | 'sek'
 
+/** Bereich von–bis, z. B. Wiederholungen, Sekunden oder Pause. */
+export interface Range {
+  min: number
+  max: number
+}
+
+/**
+ * Wie viele Wiederholungen bzw. Sekunden pro Satz realistisch sind – für
+ * jemanden, der die Übung gerade sauber beherrscht. Unabhängig vom Level:
+ * Ein Negative Pull-up (Level 1) ist für Anfänger genauso nah am Maximum wie
+ * ein Ring Muscle-up (Level 3) für Profis.
+ */
+export type Intensity = 'leicht' | 'mittel' | 'schwer' | 'maximal'
+
+/**
+ * Hauptübung (Grundübung, trägt den Tag) oder Ergänzung (Isolation, Halten,
+ * Schulterpflege). Bei gleicher Stufe kommen Hauptübungen zuerst dran.
+ */
+export type Role = 'haupt' | 'ergaenzung'
+
 export interface Exercise {
   id: string
   name: string
@@ -23,6 +43,8 @@ export interface Exercise {
   equipment: readonly Equipment[]
   level: Level
   unit: Unit
+  intensity: Intensity
+  role: Role
   /**
    * Leichtere Variante (Regression) als kurzer Text. Braucht keine Geräte über
    * die der Übung hinaus (Boden ist immer erlaubt) und ist nie schwerer als die
@@ -44,9 +66,9 @@ export interface PlannedExercise {
   exercise: Exercise
   sets: number
   /** Bereich in der Einheit der Übung (Wiederholungen oder Sekunden). */
-  reps: { min: number; max: number }
+  reps: Range
   /** Pause zwischen den Sätzen in Sekunden. */
-  rest: { min: number; max: number }
+  rest: Range
 }
 
 export interface PlanDay {

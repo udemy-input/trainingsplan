@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { generatePlan } from './plan.ts'
+import { GOAL_RULES as PLAN_GOAL_RULES, generatePlan } from './plan.ts'
 import { EXERCISES } from './exercises.ts'
 import type {
+  Category,
   DayFocus,
   Equipment,
   Goal,
+  Intensity,
   Level,
   Plan,
   PlanInput,
+  Range,
+  Exercise,
   TrainingDays,
   Unit,
 } from './types.ts'
@@ -35,26 +39,64 @@ const SPLIT: Record<TrainingDays, readonly DayFocus[]> = {
 
 const EXERCISES_PER_DAY: Record<Level, number> = { 1: 4, 2: 5, 3: 6 }
 
-interface Range {
-  min: number
-  max: number
-}
+const r = (min: number, max: number): Range => ({ min, max })
 
-const GOAL_RULES: Record<Goal, { sets: number; ranges: Record<Unit, Range> }> =
-  {
-    kraft: {
-      sets: 5,
-      ranges: { wdh: { min: 3, max: 6 }, sek: { min: 10, max: 20 } },
+const GOAL_RULES: Record<
+  Goal,
+  { sets: number; ranges: Record<Unit, Record<Intensity, Range>> }
+> = {
+  kraft: {
+    sets: 5,
+    ranges: {
+      wdh: {
+        leicht: r(10, 15),
+        mittel: r(3, 6),
+        schwer: r(3, 5),
+        maximal: r(1, 3),
+      },
+      sek: {
+        leicht: r(20, 30),
+        mittel: r(10, 20),
+        schwer: r(5, 10),
+        maximal: r(3, 5),
+      },
     },
-    muskelaufbau: {
-      sets: 4,
-      ranges: { wdh: { min: 8, max: 12 }, sek: { min: 20, max: 40 } },
+  },
+  muskelaufbau: {
+    sets: 4,
+    ranges: {
+      wdh: {
+        leicht: r(15, 20),
+        mittel: r(8, 12),
+        schwer: r(5, 8),
+        maximal: r(3, 5),
+      },
+      sek: {
+        leicht: r(30, 45),
+        mittel: r(20, 40),
+        schwer: r(10, 15),
+        maximal: r(5, 10),
+      },
     },
-    ausdauer: {
-      sets: 3,
-      ranges: { wdh: { min: 15, max: 25 }, sek: { min: 30, max: 60 } },
+  },
+  ausdauer: {
+    sets: 3,
+    ranges: {
+      wdh: {
+        leicht: r(20, 30),
+        mittel: r(15, 25),
+        schwer: r(8, 12),
+        maximal: r(4, 6),
+      },
+      sek: {
+        leicht: r(45, 90),
+        mittel: r(30, 60),
+        schwer: r(15, 20),
+        maximal: r(10, 15),
+      },
     },
-  }
+  },
+}
 
 // ---------------------------------------------------------------------------
 // Eingabe-Kombinationen
@@ -216,13 +258,13 @@ describe('generatePlan – alle Kombinationen Stufe × Tage × Ziel × Geräte',
     expect(v).toEqual([])
   })
 
-  it('setzt Sätze und Bereich nach Ziel und Einheit (Wdh bzw. Sekunden)', () => {
+  it('setzt Sätze und Bereich nach Ziel, Einheit und Intensität der Übung', () => {
     const v = violationsForAll((input, plan) => {
       const rule = GOAL_RULES[input.goal]
       return plan.days.flatMap((d) =>
         d.exercises.flatMap((p) => {
           const out: string[] = []
-          const range = rule.ranges[p.exercise.unit]
+          const range = rule.ranges[p.exercise.unit][p.exercise.intensity]
           if (p.sets !== rule.sets) {
             out.push(`${p.exercise.id}: ${p.sets} Sätze statt ${rule.sets}`)
           }
@@ -256,7 +298,9 @@ describe('generatePlan – nur Boden + Level 1 + 5 Tage', () => {
         expect(p.exercise.level).toBe(1)
         expect(p.exercise.equipment.every((e) => e === 'boden')).toBe(true)
         expect(p.sets).toBe(GOAL_RULES[goal].sets)
-        expect(p.reps).toEqual(GOAL_RULES[goal].ranges[p.exercise.unit])
+        expect(p.reps).toEqual(
+          GOAL_RULES[goal].ranges[p.exercise.unit][p.exercise.intensity],
+        )
       }
     }
   })
@@ -275,6 +319,238 @@ describe('generatePlan – nur Boden + Level 1 + 5 Tage', () => {
       goal: 'muskelaufbau',
     })
     expect(withFloor).toEqual(withoutFloor)
+  })
+})
+
+describe('generatePlan – Wiederholungen passen zur Übung', () => {
+  it('verlangt nie mehr als 6 Ring Muscle-ups pro Satz', () => {
+    const v = violationsForAll((_, plan) =>
+      plan.days.flatMap((d) =>
+        d.exercises
+          .filter((p) => p.exercise.id === 'ring-muscle-up' && p.reps.max > 6)
+          .map((p) => `Tag ${d.day}: ${p.reps.min}–${p.reps.max}`),
+      ),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('verlangt bei Maximal-Übungen nie mehr als 6 Wdh. bzw. 15 s', () => {
+    const v = violationsForAll((_, plan) =>
+      plan.days.flatMap((d) =>
+        d.exercises
+          .filter(
+            (p) =>
+              p.exercise.intensity === 'maximal' &&
+              p.reps.max > (p.exercise.unit === 'wdh' ? 6 : 15),
+          )
+          .map((p) => `Tag ${d.day}: ${p.exercise.id} ${p.reps.max}`),
+      ),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('gibt je Ziel und Einheit mit steigender Intensität kleinere Bereiche', () => {
+    const order: readonly Intensity[] = [
+      'leicht',
+      'mittel',
+      'schwer',
+      'maximal',
+    ]
+    const v: string[] = []
+    for (const goal of GOALS) {
+      for (const unit of ['wdh', 'sek'] as const) {
+        const ranges = PLAN_GOAL_RULES[goal].ranges[unit]
+        for (let i = 1; i < order.length; i++) {
+          const easier = ranges[order[i - 1]]
+          const harder = ranges[order[i]]
+          if (harder.max >= easier.max || harder.min > easier.min) {
+            v.push(
+              `${goal}/${unit}: ${order[i]} nicht kleiner als ${order[i - 1]}`,
+            )
+          }
+        }
+      }
+    }
+    expect(v).toEqual([])
+  })
+
+  it('lässt bei Kraft eine Plank mindestens 20 s halten', () => {
+    const plan = generatePlan({
+      level: 1,
+      days: 3,
+      goal: 'kraft',
+      equipment: [],
+    })
+    const plank = plan.days
+      .flatMap((d) => d.exercises)
+      .find((p) => p.exercise.id === 'plank')
+    expect(plank?.reps.min).toBeGreaterThanOrEqual(20)
+  })
+})
+
+/** Übungen, die für diese Eingabe überhaupt in Frage kommen. */
+function poolFor(input: PlanInput) {
+  const available = new Set<Equipment>([...input.equipment, 'boden'])
+  return EXERCISES.filter(
+    (e) =>
+      e.level <= input.level && e.equipment.every((eq) => available.has(eq)),
+  )
+}
+
+/**
+ * Ruft check für jede geplante Übung mit den Kandidaten auf, die beim Wählen
+ * noch frei waren (gleiche Kategorie, an diesem Tag noch nicht vergeben).
+ * Hatte der Tag schon eine Maximal-Übung, zählen weitere Maximal-Übungen nicht
+ * als freie Alternative – Sicherheit geht vor Stufe und Rolle.
+ */
+function violationsPerPick(
+  check: (picked: Exercise, free: Exercise[]) => string | undefined,
+): string[] {
+  return violationsForAll((input, plan) => {
+    const pool = poolFor(input)
+    return plan.days.flatMap((d) =>
+      d.exercises.flatMap((p, i) => {
+        const takenSoFar = new Set(
+          d.exercises.slice(0, i + 1).map((q) => q.exercise.id),
+        )
+        const maxBefore = d.exercises
+          .slice(0, i)
+          .some((q) => q.exercise.intensity === 'maximal')
+        const free = pool.filter(
+          (e) =>
+            e.category === p.exercise.category &&
+            !takenSoFar.has(e.id) &&
+            !(maxBefore && e.intensity === 'maximal'),
+        )
+        const msg = check(p.exercise, free)
+        return msg ? [`Tag ${d.day}: ${msg}`] : []
+      }),
+    )
+  })
+}
+
+describe('generatePlan – Auswahl der Übungen', () => {
+  it('wählt je Platz die höchste noch freie Stufe (kein Abfall an späteren Tagen)', () => {
+    const v = violationsPerPick((picked, free) => {
+      const higher = free.find((e) => e.level > picked.level)
+      return higher
+        ? `${picked.id} (L${picked.level}) statt ${higher.id} (L${higher.level})`
+        : undefined
+    })
+    expect(v).toEqual([])
+  })
+
+  it('wählt eine Ergänzung erst, wenn keine Hauptübung gleicher Stufe mehr frei ist', () => {
+    const v = violationsPerPick((picked, free) => {
+      if (picked.role !== 'ergaenzung') return undefined
+      const main = free.find(
+        (e) => e.level === picked.level && e.role === 'haupt',
+      )
+      return main ? `${picked.id} statt Hauptübung ${main.id}` : undefined
+    })
+    expect(v).toEqual([])
+  })
+
+  it('gibt Fortgeschrittenen mit nur Boden keine Level-1-Push-Übung', () => {
+    const v: string[] = []
+    for (const days of DAYS) {
+      for (const goal of GOALS) {
+        const plan = generatePlan({ level: 2, days, goal, equipment: [] })
+        for (const d of plan.days) {
+          for (const p of d.exercises) {
+            if (p.exercise.category === 'push' && p.exercise.level === 1) {
+              v.push(`${days}T/${goal} Tag ${d.day}: ${p.exercise.id}`)
+            }
+          }
+        }
+      }
+    }
+    expect(v).toEqual([])
+  })
+
+  it('hat an jedem Tag für jede Hauptkategorie des Tagestyps eine Hauptübung', () => {
+    const MAIN_CATEGORIES: Record<DayFocus, readonly Category[]> = {
+      ganzkoerper: ['push', 'pull', 'beine'],
+      oberkoerper: ['push', 'pull'],
+      unterkoerper: ['beine'],
+      push: ['push'],
+      pull: ['pull'],
+      beine: ['beine'],
+    }
+    const v = violationsForAll((_, plan) =>
+      plan.days.flatMap((d) =>
+        MAIN_CATEGORIES[d.focus]
+          .filter(
+            (c) =>
+              !d.exercises.some(
+                (p) => p.exercise.category === c && p.exercise.role === 'haupt',
+              ),
+          )
+          .map((c) => `Tag ${d.day}: keine Hauptübung für ${c}`),
+      ),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('hat an Ganzkörper- und Oberkörper-Tagen mindestens so viel Pull wie Push', () => {
+    const v = violationsForAll((_, plan) =>
+      plan.days
+        .filter((d) => d.focus === 'ganzkoerper' || d.focus === 'oberkoerper')
+        .flatMap((d) => {
+          const count = (c: string) =>
+            d.exercises.filter((p) => p.exercise.category === c).length
+          return count('pull') < count('push')
+            ? [`Tag ${d.day}: ${count('push')} Push, ${count('pull')} Pull`]
+            : []
+        }),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('nutzt jedes gewählte Zusatzgerät auch (alle Kombinationen)', () => {
+    const v = violationsForAll((input, plan) =>
+      input.equipment
+        .filter(
+          (eq) =>
+            !plan.days.some((d) =>
+              d.exercises.some((p) => p.exercise.equipment.includes(eq)),
+            ),
+        )
+        .map((eq) => `${eq} kommt nicht vor`),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('hat an Ganzkörper- und Oberkörper-Tagen höchstens eine Maximal-Übung', () => {
+    const v = violationsForAll((_, plan) =>
+      plan.days
+        .filter((d) => d.focus === 'ganzkoerper' || d.focus === 'oberkoerper')
+        .flatMap((d) => {
+          const max = d.exercises.filter(
+            (p) => p.exercise.intensity === 'maximal',
+          )
+          return max.length > 1
+            ? [`Tag ${d.day}: ${max.map((p) => p.exercise.id).join(', ')}`]
+            : []
+        }),
+    )
+    expect(v).toEqual([])
+  })
+
+  it('gibt Fortgeschrittenen mit nur Boden an Ganzkörper-Tagen zweimal echtes Rudern', () => {
+    const v: string[] = []
+    for (const goal of GOALS) {
+      const plan = generatePlan({ level: 2, days: 3, goal, equipment: [] })
+      for (const d of plan.days) {
+        const mainPulls = d.exercises.filter(
+          (p) => p.exercise.category === 'pull' && p.exercise.role === 'haupt',
+        )
+        if (mainPulls.length < 2) {
+          v.push(`${goal} Tag ${d.day}: ${mainPulls.length} Haupt-Zugübungen`)
+        }
+      }
+    }
+    expect(v).toEqual([])
   })
 })
 

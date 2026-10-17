@@ -26,3 +26,6 @@ dist-ssr
 # Umgebungsvariablen
 .env
 .env.*
+
+# Playwright-MCP (Screenshots, Snapshots aus Browser-Tests)
+.playwright-mcp

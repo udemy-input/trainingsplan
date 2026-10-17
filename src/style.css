@@ -32,6 +32,26 @@ button {
   cursor: pointer;
 }
 
+/* Fingerfreundlich: mindestens ~44 px hohe Bedienelemente. */
+select {
+  font: inherit;
+}
+
+select,
+button {
+  min-height: 2.75rem;
+}
+
+fieldset label {
+  padding: 0.35rem 0;
+}
+
+input[type='checkbox'] {
+  width: 1.25rem;
+  height: 1.25rem;
+  vertical-align: middle;
+}
+
 .plan-header {
   display: flex;
   align-items: center;
@@ -58,6 +78,54 @@ td {
 th:not(:first-child),
 td:not(:first-child) {
   width: 7rem;
+}
+
+td:nth-child(2),
+td:nth-child(3),
+td:nth-child(4) {
+  white-space: nowrap;
+}
+
+/* Schmale Bildschirme: jede Übung als Karte statt fünf gequetschter Spalten. */
+@media screen and (max-width: 40rem) {
+  thead {
+    display: none;
+  }
+
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+  }
+
+  tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  td,
+  td:not(:first-child) {
+    width: auto;
+    padding: 0.1rem 0;
+    border: 0;
+  }
+
+  td:first-child {
+    font-weight: 600;
+  }
+
+  td:nth-child(2),
+  td:nth-child(3),
+  td:nth-child(4) {
+    display: inline-block;
+    margin-right: 1rem;
+  }
+
+  td:not(:first-child)::before {
+    content: attr(data-label) ': ';
+    color: #555;
+  }
 }
 
 @media print {
